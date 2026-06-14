@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Browse Jobs — JobBoard{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Available Jobs</h2>
+
+{% if jobs %}
+    {% for job in jobs %}
+    <div class="card mb-3 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title">{{ job.title }}</h5>
+            <h6 class="card-subtitle mb-2 text-muted">{{ job.company }} — {{ job.location }}</h6>
+            <p class="card-text">{{ job.description[:150] }}...</p>
+            <span class="badge bg-secondary">{{ job.job_type }}</span>
+            {% if job.salary %}
+            <span class="badge bg-success">{{ job.salary }}</span>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <p class="text-muted">No jobs posted yet. Check back soon!</p>
+{% endif %}
+{% endblock %}
