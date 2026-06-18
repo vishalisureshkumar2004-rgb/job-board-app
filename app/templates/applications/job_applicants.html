@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Applicants — {{ job.title }}{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{{ url_for('jobs.employer_dashboard') }}" class="text-decoration-none">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+<h3 class="fw-bold mb-1">Applicants for "{{ job.title }}"</h3>
+<p class="text-muted mb-4">{{ applicants|length }} applicant(s)</p>
+
+{% if applicants %}
+    {% for app in applicants %}
+    <div class="card shadow-sm border mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h5 class="fw-bold mb-1">
+                        <i class="bi bi-person-circle"></i> {{ app.applicant.full_name }}
+                    </h5>
+                    <h6 class="text-muted mb-2">
+                        <i class="bi bi-envelope"></i> {{ app.applicant.email }}
+                    </h6>
+                    <small class="text-muted">
+                        <i class="bi bi-clock"></i> Applied on {{ app.applied_at.strftime('%B %d, %Y') }}
+                    </small>
+                </div>
+                <div class="text-end">
+                    {% if app.status == 'pending' %}
+                        <span class="badge bg-warning-subtle text-warning fs-6 mb-2 d-block">Pending</span>
+                    {% elif app.status == 'accepted' %}
+                        <span class="badge bg-success-subtle text-success fs-6 mb-2 d-block">Accepted</span>
+                    {% elif app.status == 'rejected' %}
+                        <span class="badge bg-danger-subtle text-danger fs-6 mb-2 d-block">Rejected</span>
+                    {% endif %}
+
+                    <div class="d-flex gap-1">
+                        <form method="POST" action="{{ url_for('applications.update_status', app_id=app.id, new_status='accepted') }}">
+                            <button type="submit" class="btn btn-outline-success btn-sm">
+                                <i class="bi bi-check"></i> Accept
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ url_for('applications.update_status', app_id=app.id, new_status='rejected') }}">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                <i class="bi bi-x"></i> Reject
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3">No applicants yet for this job.</p>
+    </div>
+{% endif %}
+{% endblock %}

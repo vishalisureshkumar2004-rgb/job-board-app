@@ -29,9 +29,9 @@
                     <p class="text-secondary mb-2">
                         {{ job.description[:150] }}{% if job.description|length > 150 %}...{% endif %}
                     </p>
-                    <small class="text-muted">
-                        <i class="bi bi-people"></i> {{ job.applications|length }} application(s)
-                    </small>
+                    <a href="{{ url_for('applications.job_applicants', job_id=job.id) }}" class="text-decoration-none">
+                        <small><i class="bi bi-people"></i> {{ job.applications|length }} application(s)</small>
+                    </a>
                 </div>
                 <div class="d-flex flex-column gap-2">
                     <a href="{{ url_for('jobs.edit_job', job_id=job.id) }}" class="btn btn-outline-primary btn-sm">
