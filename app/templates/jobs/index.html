@@ -19,6 +19,35 @@
     </div>
 </div>
 
+<!-- Search & Filter Bar -->
+<div class="card shadow-sm border mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('jobs.index') }}" class="row g-2">
+            <div class="col-md-5">
+                <input type="text" name="search" class="form-control" placeholder="Job title (e.g. Python Developer)" value="{{ search }}">
+            </div>
+            <div class="col-md-3">
+                <input type="text" name="location" class="form-control" placeholder="Location" value="{{ location }}">
+            </div>
+            <div class="col-md-3">
+                <select name="job_type" class="form-select">
+                    <option value="">All Job Types</option>
+                    <option value="Full-time" {% if job_type == 'Full-time' %}selected{% endif %}>Full-time</option>
+                    <option value="Part-time" {% if job_type == 'Part-time' %}selected{% endif %}>Part-time</option>
+                    <option value="Contract" {% if job_type == 'Contract' %}selected{% endif %}>Contract</option>
+                    <option value="Internship" {% if job_type == 'Internship' %}selected{% endif %}>Internship</option>
+                    <option value="Remote" {% if job_type == 'Remote' %}selected{% endif %}>Remote</option>
+                </select>
+            </div>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-primary text-white w-100">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- Job Listings -->
 <h4 class="fw-bold mb-3">
     <i class="bi bi-briefcase text-primary"></i> Latest Job Openings
@@ -57,7 +86,7 @@
 {% else %}
     <div class="text-center py-5">
         <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
-        <p class="text-muted mt-3">No jobs posted yet. Check back soon!</p>
+        <p class="text-muted mt-3">No jobs match your search. Try different keywords!</p>
     </div>
 {% endif %}
 

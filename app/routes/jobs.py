@@ -8,18 +8,29 @@ jobs = Blueprint('jobs', __name__)
 
 @jobs.route('/')
 def index():
-    search = request.args.get('search', '')
-    location = request.args.get('location', '')
+    search = request.args.get('search', '').strip()
+    location = request.args.get('location', '').strip()
+    job_type = request.args.get('job_type', '')
 
     query = Job.query
 
     if search:
-        query = query.filter(Job.title.ilike(f'%{search}%'))
+        search_terms = search.split()
+        for term in search_terms:
+            query = query.filter(
+                db.or_(
+                    Job.title.ilike(f'%{term}%'),
+                    Job.company.ilike(f'%{term}%'),
+                    Job.description.ilike(f'%{term}%')
+                )
+            )
     if location:
         query = query.filter(Job.location.ilike(f'%{location}%'))
+    if job_type:
+        query = query.filter(Job.job_type == job_type)
 
     all_jobs = query.order_by(Job.created_at.desc()).all()
-    return render_template('jobs/index.html', jobs=all_jobs, search=search, location=location)
+    return render_template('jobs/index.html', jobs=all_jobs, search=search, location=location, job_type=job_type)
 
 
 @jobs.route('/job/<int:job_id>')
