@@ -6,10 +6,11 @@ import bcrypt
 
 auth = Blueprint('auth', __name__)
 
+
 @auth.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for('jobs.index'))
+        return redirect(url_for('jobs.home'))
 
     if request.method == 'POST':
         full_name = request.form.get('full_name')
@@ -18,11 +19,15 @@ def register():
         role = request.form.get('role')
 
         existing_user = User.query.filter_by(email=email).first()
+
         if existing_user:
             flash('Email already registered. Please login.', 'danger')
             return redirect(url_for('auth.register'))
 
-        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        hashed_password = bcrypt.hashpw(
+            password.encode('utf-8'),
+            bcrypt.gensalt()
+        ).decode('utf-8')
 
         user = User(
             full_name=full_name,
@@ -30,6 +35,7 @@ def register():
             password=hashed_password,
             role=role
         )
+
         db.session.add(user)
         db.session.commit()
 
@@ -42,7 +48,7 @@ def register():
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('jobs.index'))
+        return redirect(url_for('jobs.home'))
 
     if request.method == 'POST':
         email = request.form.get('email')
@@ -50,16 +56,22 @@ def login():
 
         user = User.query.filter_by(email=email).first()
 
-        if user and bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
+        if user and bcrypt.checkpw(
+            password.encode('utf-8'),
+            user.password.encode('utf-8')
+        ):
             login_user(user)
+
             flash('Logged in successfully!', 'success')
+
             next_page = request.args.get('next')
-            if user.role == 'employer':
-                return redirect(next_page or url_for('jobs.employer_dashboard'))
-            else:
-                return redirect(next_page or url_for('jobs.index'))
-        else:
-            flash('Invalid email or password.', 'danger')
+
+            if next_page:
+                return redirect(next_page)
+
+            return redirect(url_for('jobs.home'))
+
+        flash('Invalid email or password.', 'danger')
 
     return render_template('auth/login.html')
 
@@ -68,5 +80,7 @@ def login():
 @login_required
 def logout():
     logout_user()
+
     flash('You have been logged out.', 'info')
+
     return redirect(url_for('auth.login'))

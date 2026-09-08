@@ -7,6 +7,28 @@ jobs = Blueprint('jobs', __name__)
 
 
 @jobs.route('/')
+def home():
+    latest_jobs = Job.query.order_by(Job.created_at.desc()).limit(6).all()
+
+    my_jobs = []
+    total_applications = 0
+
+    if current_user.is_authenticated and current_user.role == 'employer':
+        my_jobs = Job.query.filter_by(
+            posted_by=current_user.id
+        ).order_by(Job.created_at.desc()).all()
+
+        total_applications = sum(len(job.applications) for job in my_jobs)
+
+    return render_template(
+        'home.html',
+        latest_jobs=latest_jobs,
+        my_jobs=my_jobs,
+        total_applications=total_applications
+    )
+
+
+@jobs.route('/jobs')
 def index():
     search = request.args.get('search', '').strip()
     location = request.args.get('location', '').strip()
@@ -16,6 +38,7 @@ def index():
 
     if search:
         search_terms = search.split()
+
         for term in search_terms:
             query = query.filter(
                 db.or_(
@@ -24,13 +47,28 @@ def index():
                     Job.description.ilike(f'%{term}%')
                 )
             )
-    if location:
-        query = query.filter(Job.location.ilike(f'%{location}%'))
-    if job_type:
-        query = query.filter(Job.job_type == job_type)
 
-    all_jobs = query.order_by(Job.created_at.desc()).all()
-    return render_template('jobs/index.html', jobs=all_jobs, search=search, location=location, job_type=job_type)
+    if location:
+        query = query.filter(
+            Job.location.ilike(f'%{location}%')
+        )
+
+    if job_type:
+        query = query.filter(
+            Job.job_type == job_type
+        )
+
+    all_jobs = query.order_by(
+        Job.created_at.desc()
+    ).all()
+
+    return render_template(
+        'jobs/index.html',
+        jobs=all_jobs,
+        search=search,
+        location=location,
+        job_type=job_type
+    )
 
 
 @jobs.route('/job/<int:job_id>')
@@ -56,8 +94,10 @@ def new_job():
             job_type=request.form.get('job_type'),
             posted_by=current_user.id
         )
+
         db.session.add(job)
         db.session.commit()
+
         flash('Job posted successfully!', 'success')
         return redirect(url_for('jobs.employer_dashboard'))
 
@@ -80,7 +120,9 @@ def edit_job(job_id):
         job.location = request.form.get('location')
         job.salary = request.form.get('salary')
         job.job_type = request.form.get('job_type')
+
         db.session.commit()
+
         flash('Job updated successfully!', 'success')
         return redirect(url_for('jobs.employer_dashboard'))
 
@@ -98,6 +140,7 @@ def delete_job(job_id):
 
     db.session.delete(job)
     db.session.commit()
+
     flash('Job deleted successfully.', 'info')
     return redirect(url_for('jobs.employer_dashboard'))
 
@@ -109,5 +152,11 @@ def employer_dashboard():
         flash('Access denied. Employer account required.', 'danger')
         return redirect(url_for('jobs.index'))
 
-    my_jobs = Job.query.filter_by(posted_by=current_user.id).order_by(Job.created_at.desc()).all()
-    return render_template('jobs/dashboard.html', jobs=my_jobs)
+    my_jobs = Job.query.filter_by(
+        posted_by=current_user.id
+    ).order_by(Job.created_at.desc()).all()
+
+    return render_template(
+        'jobs/dashboard.html',
+        jobs=my_jobs
+    )
